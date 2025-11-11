@@ -624,6 +624,10 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
             &EnvironmentOptions::experimental_vm_modules,
             kAllowedInEnvvar);
   AddOption("--experimental-worker", "", NoOp{}, kAllowedInEnvvar);
+  AddOption("--freestyle",
+            "disable all implicit ambient configuration",
+            &EnvironmentOptions::freestyle_,
+            kAllowedInEnvvar);
   AddOption("--experimental-report", "", NoOp{}, kAllowedInEnvvar);
   AddOption(
       "--experimental-wasi-unstable-preview1", "", NoOp{}, kAllowedInEnvvar);

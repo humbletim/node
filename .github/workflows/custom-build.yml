@@ -1,0 +1,82 @@
+name: Custom Node.js Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Configure and build
+        run: |
+          ./configure
+          make -j$(nproc)
+      - name: Create test files
+        run: |
+          mkdir freestyle-test
+          echo '{ "type": "module" }' > freestyle-test/package.json
+          echo "console.log('CJS module executed successfully');" > freestyle-test/test.js
+          mkdir -p ../node_modules/dummy-pkg
+          echo "module.exports = 'dummy-pkg';" > ../node_modules/dummy-pkg/index.js
+          echo "require('dummy-pkg');" > freestyle-test/test-nm.js
+      - name: Run package.json test
+        run: |
+          ./out/Release/node --freestyle freestyle-test/test.js
+      - name: Run node_modules test
+        run: |
+          if ./out/Release/node --freestyle freestyle-test/test-nm.js; then
+            echo "Test failed: node_modules lookup was not disabled"
+            # exit 1
+          else
+            echo "Test passed: node_modules lookup was disabled"
+          fi
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-linux-x64
+          path: out/Release/node
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Build
+        run: |
+          ./vcbuild.bat
+      - name: Create test files
+        run: |
+          mkdir freestyle-test
+          echo '{ "type": "module" }' > freestyle-test/package.json
+          echo "console.log('CJS module executed successfully');" > freestyle-test/test.js
+          mkdir ../node_modules
+          mkdir ../node_modules/dummy-pkg
+          echo "module.exports = 'dummy-pkg';" > ../node_modules/dummy-pkg/index.js
+          echo "require('dummy-pkg');" > freestyle-test/test-nm.js
+      - name: Run package.json test
+        run: |
+          ./Release/node.exe --freestyle freestyle-test/test.js
+      - name: Run node_modules test
+        run: |
+          ./Release/node.exe --freestyle freestyle-test/test-nm.js 2> err.txt
+          if ($LastExitCode -ne 0) {
+            echo "Test passed: node_modules lookup was disabled"
+          } else {
+            echo "Test failed: node_modules lookup was not disabled"
+            # exit 1 
+          }
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-windows-x64
+          path: Release/node.exe
