@@ -36,6 +36,7 @@ jobs:
             echo "Test passed: node_modules lookup was disabled"
           fi
       - name: Upload artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: node-linux-x64
@@ -74,6 +75,7 @@ jobs:
             # exit 1 
           }
       - name: Upload artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: node-windows-x64
