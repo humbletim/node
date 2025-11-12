@@ -48,9 +48,10 @@ jobs:
         run: |
           if ./out/Release/node --freestyle freestyle-test/test-nm.js; then
             echo "Test failed: node_modules lookup was not disabled"
-            # exit 1
+            exit 1
           else
             echo "Test passed: node_modules lookup was disabled"
+            exit 0
           fi
       - name: Upload artifact
         if: always()
@@ -93,9 +94,10 @@ jobs:
           ./Release/node.exe --freestyle freestyle-test/test-nm.js 2> err.txt
           if ($LastExitCode -ne 0) {
             echo "Test passed: node_modules lookup was disabled"
+            exit 0
           } else {
             echo "Test failed: node_modules lookup was not disabled"
-            # exit 1
+            exit 1
           }
       - name: Upload artifact
         if: always()
