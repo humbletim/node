@@ -1,5 +1,6 @@
 #include "node_task_runner.h"
 #include "util-inl.h"
+#include "node_options.h"
 
 #include <regex>  // NOLINT(build/c++11)
 
@@ -220,23 +221,40 @@ FindPackageJson(const std::filesystem::path& cwd) {
   auto package_json_path = cwd / "package.json";
   std::string raw_content;
   std::string path_env_var;
-  auto root_path = cwd.root_path();
 
-  for (auto directory_path = cwd;
-       !std::filesystem::equivalent(root_path, directory_path);
-       directory_path = directory_path.parent_path()) {
-    // Append "path/node_modules/.bin" to the env var, if it is a directory.
-    auto node_modules_bin = directory_path / "node_modules" / ".bin";
+  bool freestyle_enabled = false;
+  {
+    Mutex::ScopedLock lock(per_process::cli_options_mutex);
+    freestyle_enabled = per_process::cli_options->freestyle_;
+  }
+
+  if (freestyle_enabled) {
+    // In freestyle mode, only check the current directory.
+    auto node_modules_bin = cwd / "node_modules" / ".bin";
     if (std::filesystem::is_directory(node_modules_bin)) {
       path_env_var += node_modules_bin.string() + env_var_separator;
     }
+    std::string contents = package_json_path.string();
+    USE(ReadFileSync(&raw_content, contents.c_str()) > 0);
+  } else {
+    auto root_path = cwd.root_path();
 
-    if (raw_content.empty()) {
-      package_json_path = directory_path / "package.json";
-      // This is required for Windows because std::filesystem::path::c_str()
-      // returns wchar_t* on Windows, and char* on other platforms.
-      std::string contents = package_json_path.string();
-      USE(ReadFileSync(&raw_content, contents.c_str()) > 0);
+    for (auto directory_path = cwd;
+         !std::filesystem::equivalent(root_path, directory_path);
+         directory_path = directory_path.parent_path()) {
+      // Append "path/node_modules/.bin" to the env var, if it is a directory.
+      auto node_modules_bin = directory_path / "node_modules" / ".bin";
+      if (std::filesystem::is_directory(node_modules_bin)) {
+        path_env_var += node_modules_bin.string() + env_var_separator;
+      }
+
+      if (raw_content.empty()) {
+        package_json_path = directory_path / "package.json";
+        // This is required for Windows because std::filesystem::path::c_str()
+        // returns wchar_t* on Windows, and char* on other platforms.
+        std::string contents = package_json_path.string();
+        USE(ReadFileSync(&raw_content, contents.c_str()) > 0);
+      }
     }
   }
 
