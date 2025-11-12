@@ -13,6 +13,11 @@ on:
         type: boolean
         required: false
         default: false
+      tmate:
+        description: 'spawn tmate for debugging (even if success())'
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   build-linux:
@@ -53,6 +58,11 @@ jobs:
         with:
           name: node-linux-x64
           path: out/Release/node
+      - name: ~Setup tmate session
+        if: failure() || inputs.tmate
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
 
   build-windows:
     runs-on: windows-latest
@@ -93,3 +103,9 @@ jobs:
         with:
           name: node-windows-x64
           path: Release/node.exe
+      - name: ~Setup tmate session
+        if: failure() || inputs.tmate
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+
