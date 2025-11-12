@@ -215,7 +215,6 @@ class EnvironmentOptions : public Options {
   bool trace_uncaught = false;
   bool trace_warnings = false;
   bool trace_promises = false;
-  bool freestyle_ = false;
   bool trace_env = false;
   bool trace_env_js_stack = false;
   bool trace_env_native_stack = false;
@@ -316,6 +315,7 @@ class PerProcessOptions : public Options {
   //
   //     Mutex::ScopedLock lock(node::per_process::cli_options_mutex);
   std::shared_ptr<PerIsolateOptions> per_isolate { new PerIsolateOptions() };
+  bool freestyle_ = false;
 
   std::string title;
   std::string trace_event_categories;
