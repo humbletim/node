@@ -624,10 +624,6 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
             &EnvironmentOptions::experimental_vm_modules,
             kAllowedInEnvvar);
   AddOption("--experimental-worker", "", NoOp{}, kAllowedInEnvvar);
-  AddOption("--freestyle",
-            "disable all implicit ambient configuration",
-            &EnvironmentOptions::freestyle_,
-            kAllowedInEnvvar);
   AddOption("--experimental-report", "", NoOp{}, kAllowedInEnvvar);
   AddOption(
       "--experimental-wasi-unstable-preview1", "", NoOp{}, kAllowedInEnvvar);
@@ -1221,6 +1217,10 @@ PerProcessOptionsParser::PerProcessOptionsParser(
   AddOption("--v8-pool-size",
             "set V8's thread pool size",
             &PerProcessOptions::v8_thread_pool_size,
+            kAllowedInEnvvar);
+  AddOption("--freestyle",
+            "disable all implicit ambient configuration",
+            &PerProcessOptions::freestyle_,
             kAllowedInEnvvar);
   AddOption("--zero-fill-buffers",
             "automatically zero-fill all newly allocated Buffer and "
